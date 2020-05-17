@@ -40,6 +40,8 @@ public class Tile extends StackPane {
         border.setFill(null);
     }
 
+    public void setTreasure(){border.setFill(Color.BLUE);}
+
     public char getLetter(){return letter;}
 }
 

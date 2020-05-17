@@ -2,56 +2,56 @@ package sample;
 
 import java.util.Random;
 
-import javafx.animation.FadeTransition;
 import javafx.application.Application;
-import javafx.fxml.FXMLLoader;
-import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
-import javafx.stage.Stage;
-import javafx.scene.text.Font;
-import javafx.scene.text.Text;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-import javafx.util.Duration;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
+import javafx.stage.Stage;
+
 
 public class Main extends Application {
     public static void main(String[] args) {
         launch(args);
  }
-
+    //grid variables
     private static final int NUM_ROWS = 15;
     private static final int NUM_COLS = 15;
     private Tile[][] grid = new Tile[NUM_ROWS][NUM_COLS]; //2d array of Tile objects
 
+    //initialize player coordinates to a random value
     Random random = new Random();
     int playerX = random.nextInt(NUM_COLS);
     int playerY = random.nextInt(NUM_ROWS);
 
+    //treasure tile coordinates
+    int treasureX;
+    int treasureY;
+
+    Clock timer = new Clock(); //timer system
+
+    Text scoreText; //text to display player score
+    private Integer gameScore = 0; //player score
 
     @Override
     public void start(Stage stage) throws Exception {
-        //gameScene
-        Scene gameScene = new Scene(createGameContent(stage));
-        gameScene.setOnKeyPressed(e -> keyPressed(e.getCode().toString()));
-
-        stage.setScene(gameScene);
-        stage.show();
+        Scene gameScene = new Scene(createGameContent(stage)); //create scene
+        addTreasure(); //add starting treasure
+        gameScene.setOnKeyPressed(e -> keyPressed(e.getCode().toString())); //handle keyboard inputs
+        stage.setScene(gameScene); //add scene to stage
+        stage.show(); //show stage
     }
 
     private void keyPressed(String letter){
         System.out.println("pressed: " + letter);
-        checkNeighbor(letter);
-        System.out.println("playerX: " + playerX);
-        System.out.println("playerY: " + playerY);
+        movePlayer(letter);
+        System.out.println("player coords: (" + playerX + ", " + playerY + ")");
     }
 
-    public void checkNeighbor(String letter){
+    public void movePlayer(String letter){
         //check x neighbors
         if(playerX != 0 && letter.charAt(0) == (grid[playerY][playerX -1].getLetter())){ //left x
             grid[playerY][playerX].setRegular(); //set old player tile to a regular tile
@@ -70,8 +70,14 @@ public class Main extends Application {
             grid[playerY][playerX].setRegular();
             grid[playerY+1][playerX].setPlayer();
             playerY++;
-        }else{
-            System.out.println("Pressed non-neighbor");
+        }else{ System.out.println("Pressed non-neighbor"); }
+        //check if player collects treasure
+        if(playerX == treasureX && playerY == treasureY){
+            System.out.println("Collected treasure!");
+            timer.secondsLeft += 5; //add 5 seconds to time
+            gameScore++; // increment player score
+            scoreText.setText("Score: " + gameScore);
+            addTreasure(); //add new treasure
         }
     }
 
@@ -89,11 +95,23 @@ public class Main extends Application {
         return c;
     }
 
+    public void addTreasure(){
+        treasureX = random.nextInt(NUM_COLS); //generate random x coord
+        treasureY = random.nextInt(NUM_ROWS); //generate random y coord
+        //ensure treasure is placed at least 3 tiles away from player
+        while((Math.abs(playerX - treasureX) < 3) || Math.abs(playerY - treasureY) < 3){
+            treasureX = random.nextInt(NUM_COLS);
+            treasureY = random.nextInt(NUM_ROWS);
+        }
+        grid[treasureY][treasureX].setTreasure();
+    }
+
+
     private Parent createGameContent(Stage stage){
         stage.setTitle("Game Scene");
-        //creating window
+        //creating grid window
         Pane root = new Pane();
-        root.setPrefSize(800, 800);
+        root.setPrefSize(800, 900);
         root.setLayoutX(50);
 
         //populating grid with tiles
@@ -104,15 +122,29 @@ public class Main extends Application {
                 tile.setTranslateX(50 * x); //moving tile to correct x
                 tile.setTranslateY(50 * y); //moving tile to correct y
 
-
                 //make one random tile the playerTile
-                if(x == playerX && y == playerY) {
+                if (x == playerX && y == playerY) {
                     tile.setPlayer();
                 }
+
                 grid[y][x] = tile; //add tile to grid
                 root.getChildren().add(tile); //adding to root to be displayed
             }
         }
+
+        //add timer
+        timer.setTranslateX(300);
+        timer.setTranslateY(760);
+        root.getChildren().add(timer);
+        timer.startTimer();
+
+        //add score
+        scoreText = new Text("Score: " + gameScore.toString());
+        scoreText.setTranslateX(345);
+        scoreText.setTranslateY(850);
+        scoreText.setFont(Font.font(20));
+        root.getChildren().add(scoreText);
+
         return root;
     }
 }//end main class
