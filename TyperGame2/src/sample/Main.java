@@ -31,13 +31,13 @@ public class Main extends Application {
     int treasureX;
     int treasureY;
 
-    Clock timer = new Clock(); //timer system
-
     Text scoreText; //text to display player score
-    private Integer gameScore = 0; //player score
+    public Integer gameScore = 0; //player score
+    Clock timer = new Clock(gameScore); //timer system
 
     @Override
     public void start(Stage stage) throws Exception {
+
         Scene gameScene = new Scene(createGameContent(stage)); //create scene
         addTreasure(); //add starting treasure
         gameScene.setOnKeyPressed(e -> keyPressed(e.getCode().toString())); //handle keyboard inputs
@@ -51,7 +51,13 @@ public class Main extends Application {
         System.out.println("player coords: (" + playerX + ", " + playerY + ")");
     }
 
+
+    boolean gameStartFlag = true;
     public void movePlayer(String letter){
+        if(gameStartFlag){
+            timer.startTimer();
+            gameStartFlag = false;
+        }
         //check x neighbors
         if(playerX != 0 && letter.charAt(0) == (grid[playerY][playerX -1].getLetter())){ //left x
             grid[playerY][playerX].setRegular(); //set old player tile to a regular tile
@@ -76,6 +82,7 @@ public class Main extends Application {
             System.out.println("Collected treasure!");
             timer.secondsLeft += 5; //add 5 seconds to time
             gameScore++; // increment player score
+            timer.addScore();
             scoreText.setText("Score: " + gameScore);
             addTreasure(); //add new treasure
         }
@@ -84,13 +91,13 @@ public class Main extends Application {
     //function generates a random character such that no tile can have more than 1 neighbor
     //with the same character value (ex: v b v)
     public char generateRandomChar(Tile[][] grid, int x, int y){
-        char c = (char) (random.nextInt(25) + 65);
+        char c = (char) (random.nextInt(25) + 66);
         while(  (x >= 2 && c == grid[y][x-2].getLetter()) ||
                 (y >= 2 && c == grid[y-2][x].getLetter()) ||
                 (y != 0 && x != 0 && c == grid[y-1][x-1].getLetter()) ||
                 (y != 0 && x != NUM_COLS-1 && c == grid[y-1][x+1].getLetter())
         ){
-            c = (char) (random.nextInt(25) + 65);
+            c = (char) (random.nextInt(25) + 66);
         }
         return c;
     }
@@ -136,7 +143,7 @@ public class Main extends Application {
         timer.setTranslateX(300);
         timer.setTranslateY(760);
         root.getChildren().add(timer);
-        timer.startTimer();
+
 
         //add score
         scoreText = new Text("Score: " + gameScore.toString());

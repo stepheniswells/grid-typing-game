@@ -7,7 +7,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
-public class Tile extends StackPane {
+public class Tile extends StackPane{
     //member variables
     private int x_coord;
     private int y_coord;
