@@ -37,10 +37,16 @@ public class Tile extends StackPane{
     }
 
     public void setRegular(){
-        border.setFill(null);
+            border.setFill(null);
     }
 
     public void setTreasure(){border.setFill(Color.BLUE);}
+
+    public void setEnemy(){
+        if(border.getFill() != Color.GREEN){ //only change non-player square tiles to red
+            border.setFill(Color.RED);
+        }
+    }
 
     public char getLetter(){return letter;}
 }

@@ -19,9 +19,10 @@ import java.util.TimerTask;
 
 public class Clock extends StackPane {
     private Rectangle timer;
-    private static final Integer INIT_TIME = 6;
+    private static final Integer INIT_TIME = 20;
     public Integer secondsLeft = INIT_TIME;
     private int score;
+
     public Clock(int gameScore) {
         //create timer rectangle
         timer = new Rectangle(150, 50);
@@ -66,8 +67,6 @@ public class Clock extends StackPane {
         gameTimer.scheduleAtFixedRate(task, 1000, 1000);
     } //end of startTimer method
 
-
-
     public void gameEnd(){
         Stage gameEnd = new Stage();
         gameEnd.initModality(Modality.APPLICATION_MODAL);
@@ -79,8 +78,8 @@ public class Clock extends StackPane {
         endMessage.setTranslateY(100);
         endMessage.setFont(Font.font(25));
 
-        Text options = new Text("Press 'Enter' to play again. Press 'Esc' to exit game.");
-        options.setTranslateX(100);
+        Text options = new Text("Press 'Enter' to go on without timer. Press 'Esc' to exit game.");
+        options.setTranslateX(15);
         options.setTranslateY(220);
         options.setFont(Font.font(25));
 
@@ -95,11 +94,13 @@ public class Clock extends StackPane {
 
     public void keyPressed(String key, Stage gameEnd){
         System.out.println(key);
-        if(key == "ENTER"){ //restart game
+        if(key == "ENTER"){ //keep playing
             gameEnd.close(); //close game end window
+            getChildren().clear();
         }
         if(key == "ESCAPE"){ //exit game
             Platform.exit();
+            System.exit(0);
         }
     }
 }

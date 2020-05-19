@@ -1,8 +1,11 @@
 package sample;
 
 import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.layout.*;
@@ -17,6 +20,7 @@ public class Main extends Application {
     public static void main(String[] args) {
         launch(args);
  }
+    //*** member variables ***
     //grid variables
     private static final int NUM_ROWS = 15;
     private static final int NUM_COLS = 15;
@@ -31,18 +35,31 @@ public class Main extends Application {
     int treasureX;
     int treasureY;
 
+    //enemy tile coordinates and timer
+    int enemyX;
+    int enemyY;
+    private static final int ENEMY_SPEED = 500; //time in milliseconds between enemy moves
+
+    //timer and score system
     Text scoreText; //text to display player score
     public Integer gameScore = 0; //player score
     Clock timer = new Clock(gameScore); //timer system
 
+
+    //*** member functions ***
     @Override
     public void start(Stage stage) throws Exception {
-
+        Platform.setImplicitExit(true); //forces application.stop call when last window is closed
         Scene gameScene = new Scene(createGameContent(stage)); //create scene
-        addTreasure(); //add starting treasure
         gameScene.setOnKeyPressed(e -> keyPressed(e.getCode().toString())); //handle keyboard inputs
         stage.setScene(gameScene); //add scene to stage
         stage.show(); //show stage
+    }
+
+    @Override
+    public void stop() throws Exception {
+        super.stop();
+        System.exit(0);
     }
 
     private void keyPressed(String letter){
@@ -51,10 +68,9 @@ public class Main extends Application {
         System.out.println("player coords: (" + playerX + ", " + playerY + ")");
     }
 
-
     boolean gameStartFlag = true;
-    public void movePlayer(String letter){
-        if(gameStartFlag){
+    void movePlayer(String letter){
+        if(gameStartFlag){ //start timer only when player moves
             timer.startTimer();
             gameStartFlag = false;
         }
@@ -90,7 +106,7 @@ public class Main extends Application {
 
     //function generates a random character such that no tile can have more than 1 neighbor
     //with the same character value (ex: v b v)
-    public char generateRandomChar(Tile[][] grid, int x, int y){
+    char generateRandomChar(Tile[][] grid, int x, int y){
         char c = (char) (random.nextInt(25) + 66);
         while(  (x >= 2 && c == grid[y][x-2].getLetter()) ||
                 (y >= 2 && c == grid[y-2][x].getLetter()) ||
@@ -102,7 +118,7 @@ public class Main extends Application {
         return c;
     }
 
-    public void addTreasure(){
+    void addTreasure(){
         treasureX = random.nextInt(NUM_COLS); //generate random x coord
         treasureY = random.nextInt(NUM_ROWS); //generate random y coord
         //ensure treasure is placed at least 3 tiles away from player
@@ -113,6 +129,63 @@ public class Main extends Application {
         grid[treasureY][treasureX].setTreasure();
     }
 
+    void addEnemy(){
+        enemyX = random.nextInt(NUM_COLS); //generate random coordinates for enemy
+        enemyY = random.nextInt(NUM_ROWS);
+        //ensure enemy is placed at least 3 tiles away from treasure
+        while((Math.abs(enemyX - treasureX) < 3) || Math.abs(enemyY - treasureY) < 3){
+            enemyX = random.nextInt(NUM_COLS);
+            enemyY = random.nextInt(NUM_ROWS);
+        }
+        grid[enemyY][enemyX].setEnemy(); //set tile in grid to enemy
+
+        //add enemyTimer so that enemy moves at regular intervals
+        Timer enemyTimer = new Timer();
+        TimerTask task = new TimerTask(){
+            @Override
+            public void run() {
+                Platform.runLater(new Runnable(){
+                    public void run(){
+                        if(!gameStartFlag){ //enemy moves once player starts moving
+                            moveEnemy();
+                        }
+                    }//end inner run
+                }); //Runnable
+            }//outer run
+        }; //end of task
+        enemyTimer.scheduleAtFixedRate(task, ENEMY_SPEED, ENEMY_SPEED);
+    }
+
+    void moveEnemy(){ //enemy moves towards treasure, first in the x direction, then y
+        if(treasureX < enemyX){
+            if(enemyX != playerX || enemyY != playerY){ //set old tile to regular
+                grid[enemyY][enemyX].setRegular();      //unless old tile is player tile
+            }
+            grid[enemyY][enemyX -1].setEnemy(); //set new tile to become enemy tile
+            enemyX--;
+        }else if(treasureX > enemyX){
+            if(enemyX != playerX || enemyY != playerY){
+                grid[enemyY][enemyX].setRegular();
+            }
+            grid[enemyY][enemyX  + 1].setEnemy();
+            enemyX ++;
+        }else if(treasureY < enemyY){
+            if(enemyX != playerX || enemyY != playerY){
+                grid[enemyY][enemyX].setRegular();
+            }
+            grid[enemyY-1][enemyX].setEnemy();
+            enemyY--;
+        }else if(treasureY > enemyY){
+            if(enemyX != playerX || enemyY != playerY){
+                grid[enemyY][enemyX].setRegular();
+            }
+            grid[enemyY+1][enemyX].setEnemy();
+            enemyY++;
+        }
+        if(enemyX == treasureX && enemyY == treasureY){
+            addTreasure(); //if enemy reaches treasure, add a new treasure
+        }
+    }
 
     private Parent createGameContent(Stage stage){
         stage.setTitle("Game Scene");
@@ -139,11 +212,16 @@ public class Main extends Application {
             }
         }
 
+        //add treasure tile
+        addTreasure();
+
+        //add enemy tile
+        addEnemy();
+
         //add timer
         timer.setTranslateX(300);
         timer.setTranslateY(760);
         root.getChildren().add(timer);
-
 
         //add score
         scoreText = new Text("Score: " + gameScore.toString());
@@ -155,3 +233,4 @@ public class Main extends Application {
         return root;
     }
 }//end main class
+
