@@ -34,12 +34,12 @@ Ideas for the future:
 * Starting menu
 * Ability to restart game
 
-## Demo Billboards
-![Game Start](https://imgur.com/a/ZCbGcJ6g)
+## Pictures
+![Game Start](https://i.imgur.com/Gq8AIEt.png)
 
-![Game Play](https://imgur.com/a/qAjXAdW)
+![Game Play](https://i.imgur.com/laOHL4K.png)
 
-![Game End](https://imgur.com/a/teNmimo)
+![Game End](https://i.imgur.com/SXwUyf2.png)
 
 
 
