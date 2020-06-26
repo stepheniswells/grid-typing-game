@@ -1,5 +1,4 @@
 # grid-typing-game
-Test your typing abilities by racing around a grid of letters, battling an enemy NPC at collecting treasures against the clock!  
 
 ## Game
 
